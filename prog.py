@@ -51,26 +51,26 @@ def findPath(data, date, pointOrig, pointDest):
 					possibleFlight.append(currentFlight)
 					break
 
-				currentDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
+				currentArrivalDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
 				schetchik = 0
 				udaleno = 0
 				print(len(temp))
-				for elem in temp:
+				for elem in list(temp):
 					# 6-й элемент - время прибытия рейса
 					# 21 и 23 - метки отмены рейса
 					#if elem[17] == currentFlight[17] and compareTime(elem[6], currentFlight[6]) == -1:
-					elemDateTime = dt.datetime(int(elem[0]), int(elem[1]), int(elem[2]), int(elem[6][:-2]), int(elem[6][-2:]))
+					elemArrivalDateTime = dt.datetime(int(elem[0]), int(elem[1]), int(elem[2]), int(elem[6][:-2]), int(elem[6][-2:]))
 					#if elem[17] == currentFlight[17] and compareTime(elem[6], currentFlight[6]) == -1:
-					if elem[17] == currentFlight[17] and currentDateTime > elemDateTime:
+					if elem[17] == currentFlight[17] and currentArrivalDateTime > elemArrivalDateTime:
 						print(currentFlight[:18])
 						print(elem[:18])
-						print(currentDateTime)
-						print(elemDateTime)
+						print(currentArrivalDateTime)
+						print(elemArrivalDateTime)
 						input()
 						currentFlight = elem
-						currentDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
+						currentArrivalDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
 						temp.remove(elem)
-					elif elem[17] == currentFlight[17] and currentDateTime <= elemDateTime:
+					elif elem[17] == currentFlight[17] and currentArrivalDateTime <= elemArrivalDateTime:
 						temp.remove(elem)
 						udaleno+=1
 					schetchik+=1
