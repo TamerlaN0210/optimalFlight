@@ -31,16 +31,9 @@ def findPath(data, date, pointOrig, pointDest):
 	while not isDone:
 		firstMove = False #флаг для первого действия
 		if firstMove == False:
-			i = 0
 			for row in data:
 				#ищем маршруты из пункта отправки на заданное число, так, чтобы не попасть в аэропорты в коротые мы прибыли на других шагах
 				if str(row[16]) == str(pointOrig) and int(date.month) == int(row[1]) and int(date.day) == int(row[2]):
-					# if str(row[17]) in alreadyBeen:
-					# possibleFlight.append(row)
-					# alreadyBeen.append(row[17])
-					# data.remove(row)
-					i+=1
-					print(str(i) + " " +str(row[16] + " " + str(row[17]) + " " + str(row[6])))
 					temp.append(row)
 					data.remove(row)
 			print("Вылетело из первого аэропора сегодня: " + str(len(temp)))
@@ -52,31 +45,31 @@ def findPath(data, date, pointOrig, pointDest):
 					break
 
 				currentArrivalDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
-				schetchik = 0
-				udaleno = 0
 				print(len(temp))
-				for elem in list(temp):
+				i = 0
+				while i < len(temp):
 					# 6-й элемент - время прибытия рейса
 					# 21 и 23 - метки отмены рейса
 					#if elem[17] == currentFlight[17] and compareTime(elem[6], currentFlight[6]) == -1:
-					elemArrivalDateTime = dt.datetime(int(elem[0]), int(elem[1]), int(elem[2]), int(elem[6][:-2]), int(elem[6][-2:]))
+					elemArrivalDateTime = dt.datetime(int(temp[i][0]), int(temp[i][1]), int(temp[i][2]), int(temp[i][6][:-2]), int(temp[i][6][-2:]))
 					#if elem[17] == currentFlight[17] and compareTime(elem[6], currentFlight[6]) == -1:
-					if elem[17] == currentFlight[17] and currentArrivalDateTime > elemArrivalDateTime:
+					if temp[i][17] == currentFlight[17] and currentArrivalDateTime > elemArrivalDateTime:
 						print(currentFlight[:18])
-						print(elem[:18])
+						print(temp[i][:18])
 						print(currentArrivalDateTime)
 						print(elemArrivalDateTime)
 						input()
-						currentFlight = elem
+						currentFlight = list(temp[i])
 						currentArrivalDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
-						temp.remove(elem)
-					elif elem[17] == currentFlight[17] and currentArrivalDateTime <= elemArrivalDateTime:
-						temp.remove(elem)
-						udaleno+=1
-					schetchik+=1
-					print("Прошло строк: " + str(schetchik) + "Удалено: " + str(udaleno))
+						del temp[i]
+					elif temp[i][17] == currentFlight[17] and currentArrivalDateTime <= elemArrivalDateTime:
+						del temp[i]
+					else:
+						i+=1
 				possibleFlight.append(currentFlight)
+				alreadyBeen.add(currentFlight[17])
 			firstMove = True
+		
 		isDone = True
 	#TODO вернуть нормальное значение, сейчас это заглушка
 	return possibleFlight
