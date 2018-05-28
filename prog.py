@@ -43,48 +43,60 @@ def oneIter(data, previousFlight, alreadyBeen, pointDest):
 	arrivalDateTime = dt.datetime(int(previousFlightList[0]), int(previousFlightList[1]), int(previousFlightList[2]), int(previousFlightList[6][:-2]), int(previousFlightList[6][-2:]))
 	temp = [] # хранит полеты только из данного аэропорта
 	for row in data:
-				#ищем маршруты из текущего аэропорта на заданное число, так, чтобы не попасть в аэропорты в коротые мы прибыли на других шагах
-				#странное и непонятное время, пока будем просто удалять "битые" записи
-				if(str(row[0]) == "" or str(row[1]) == "" or str(row[2]) == "" or str(row[6][:-2]) == "" or str(row[6][-2:]) == ""):
-					print(row)
-					continue
-				try:
-					rowDateTime = dt.datetime(int(row[0]), int(row[1]), int(row[2]), int(row[6][:-2]), int(row[6][-2:]))
-				except ValueError as e:
-					if int(row[6][:-2]) == 24:
-						rowDateTime = dt.datetime(int(row[0]), int(row[1]), int(row[2]), int(0), int(row[6][-2:]))
-				if str(row[16]) == str(currentPoint) and arrivalDateTime < rowDateTime and row[17] not in alreadyBeen:
-					temp.append(row)
-					# data.remove(row)
-	if len(temp) == 0: # если исходящих рейсов нет, помечаем это путь как завершенный
+		#ищем маршруты из текущего аэропорта на заданное число, так, чтобы не попасть в аэропорты в коротые мы прибыли на других шагах
+		#странное и непонятное время, пока будем просто удалять "битые" записи
+		if(str(row[0]) == "" or str(row[1]) == "" or str(row[2]) == "" or str(row[6][:-2]) == "" or str(row[6][-2:]) == ""):
+			print(row)
+			continue
+		try:
+			rowDateTime = dt.datetime(int(row[0]), int(row[1]), int(row[2]), int(row[6][:-2]), int(row[6][-2:]))
+		except ValueError as e:
+			if int(row[6][:-2]) == 24:
+				rowDateTime = dt.datetime(int(row[0]), int(row[1]), int(row[2]), int(0), int(row[6][-2:]))
+		if str(row[16]) == str(currentPoint) and arrivalDateTime < rowDateTime and row[17] not in alreadyBeen:
+			temp.append(row)
+	#-------------------------------------------------------------------
+	# print("Рейсов из " + str(previousFlightList[17]) + " найдено: " + str(len(temp)))
+	# input()
+	# print("Найденные рейсы из " + str(previousFlightList[17]))
+	# for row in temp:
+	# 	print(row)
+	# input()
+	#-------------------------------------------------------------------
+	if len(temp) == 0: # если исходящих рейсов из данного аэропорта нет, то помечаем это путь как завершенный
 		possibleFlights.append(revTree(previousFlight, "end"))
 	else:
 		while len(temp) > 0:
-					currentFlight = temp[0]
-					# добавляем аэропорты, из которых мы уже вылетали, чтобы не проходить их заново
-					del temp[0]
-					if len(temp) == 0: #если в списке полетов мы остался один рейс, которого нет у нас, то добавляем его у возможные пути
-						possibleFlights.append(currentFlight)
-						# проверяем, не прилетели ли мы уже в нужный аэропорт 
-						if isDestination(pointDest, currentFlight):
-							paths.append(revTree(None, currentFlight))
-						break
+			currentFlight = temp[0]
+			# добавляем аэропорты, из которых мы уже вылетали, чтобы не проходить их заново
+			del temp[0]
+			if len(temp) == 0: #если в списке полетов мы остался один рейс, которого нет у нас, то добавляем его у возможные пути
+				possibleFlights.append(revTree(previousFlight, currentFlight))
+				# проверяем, не прилетели ли мы уже в нужный аэропорт 
+				if isDestination(pointDest, currentFlight):
+					paths.append(revTree(None, currentFlight))
+				break
 
+			currentArrivalDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
+			
+			i = 0
+			while i < len(temp):
+				# 6-й элемент - время прибытия рейса
+				# 21 и 23 - метки отмены рейса
+				#if elem[17] == currentFlight[17] and compareTime(elem[6], currentFlight[6]) == -1:
+				elemArrivalDateTime = dt.datetime(int(temp[i][0]), int(temp[i][1]), int(temp[i][2]), int(temp[i][6][:-2]), int(temp[i][6][-2:]))
+				if temp[i][17] == currentFlight[17] and currentArrivalDateTime > elemArrivalDateTime:
+					currentFlight = temp[i]
+					del temp[i]
 					currentArrivalDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
-					print(len(temp))
-					
-					for row in temp: 
-						# 6-й элемент - время прибытия рейса
-						# 21 и 23 - метки отмены рейса
-						#if elem[17] == currentFlight[17] and compareTime(elem[6], currentFlight[6]) == -1:
-						elemArrivalDateTime = dt.datetime(int(row[0]), int(row[1]), int(row[2]), int(row[6][:-2]), int(row[6][-2:]))
-						if row[17] == currentFlight[17] and currentArrivalDateTime > elemArrivalDateTime:
-							currentFlight = row
-							currentArrivalDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
-					# проверяем, не прилетели ли мы уже в нужный аэропорт 
-					if isDestination(pointDest, currentFlight):
-						paths.append(revTree(None, currentFlight))
-					possibleFlights.append(revTree(None, currentFlight)) # заполнили список маршрутами из стартового аэропорта
+				elif temp[i][17] == currentFlight[17] and currentArrivalDateTime <= elemArrivalDateTime:
+					del temp[i]
+				else:
+					i+=1
+			# проверяем, не прилетели ли мы уже в нужный аэропорт 
+			if isDestination(pointDest, currentFlight):
+				paths.append(revTree(previousFlight, currentFlight))
+			possibleFlights.append(revTree(previousFlight, currentFlight)) # заполнили список маршрутами из стартового аэропорта
 	return paths, possibleFlights
 
 def findPath(dataInput, date, pointOrig, pointDest):
@@ -111,7 +123,7 @@ def findPath(dataInput, date, pointOrig, pointDest):
 
 	currentFlight = [] #информация о конкретном полете
 	temp = []  #временная
-	startPosition = pointOrig
+	k = 0
 	while not isDone:
 		firstMove = False #флаг для первого действия
 		if firstMove == False:
@@ -120,20 +132,21 @@ def findPath(dataInput, date, pointOrig, pointDest):
 				if str(row[16]) == str(pointOrig) and int(date.month) == int(row[1]) and int(date.day) == int(row[2]):
 					temp.append(row)
 					data.remove(row)
-			print("Вылетело из первого аэропора сегодня: " + str(len(temp)))
+			# print("Вылетело из первого аэропора сегодня: " + str(len(temp)))
+			# input()
 
 			# ищем возможные рейсы из начального аэропорта
 			while len(temp) > 0:
 				currentFlight = temp[0]
-				# добавляем аэропорты, из которых мы уже вылетали, чтобы не проходить их заново
-				# currentFlight[16] - IATA-код аэропорта отправления рейса
-				alreadyBeen.add(currentFlight[16])
 				del temp[0]
 				if len(temp) == 0: #если в списке полетов мы остался один рейс, которого нет у нас, то добавляем его у возможные пути
-					possibleFlights.append(currentFlight)
+					possibleFlights.append(revTree(None, currentFlight))
 					# проверяем, не прилетели ли мы уже в нужный аэропорт 
 					if isDestination(pointDest, currentFlight):
 						paths.append(revTree(None, currentFlight))
+						print("Добавили в найденные пути:")
+						print(currentFlight)
+						input()
 					break
 
 				currentArrivalDateTime = dt.datetime(int(currentFlight[0]), int(currentFlight[1]), int(currentFlight[2]), int(currentFlight[6][:-2]), int(currentFlight[6][-2:]))
@@ -157,7 +170,26 @@ def findPath(dataInput, date, pointOrig, pointDest):
 				# проверяем, не прилетели ли мы уже в нужный аэропорт 
 				if isDestination(pointDest, currentFlight):
 					paths.append(revTree(None, currentFlight))
+					print("Добавили в найденные пути:")
+					print(currentFlight)
+					input()
 				possibleFlights.append(revTree(None, currentFlight)) # заполнили список маршрутами из стартового аэропорта
+			#-------------------------------------------------------------------
+			# print("Возможные пути на первом шаге:")
+			# for each in possibleFlights:
+			# 	print(str(each.parent) + " " + str(each.data))
+			#-------------------------------------------------------------------
+			# добавляем аэропорты, из которых мы уже вылетали, чтобы не проходить их заново
+			# currentFlight[16] - IATA-код аэропорта отправления рейса
+			alreadyBeen.add(currentFlight[16])
+			# dataToWrite = list()
+			# for row in possibleFlights:
+			# 	dataToWrite.append(row.data)
+			# writeCsv(dataToWrite)
+			print("найденный путь:")
+			for elem in paths:
+				print(elem.data)
+			print(len(data))
 			firstMove = True
 		while len(data) > 0:
 			elemPaths = list() # найденные пути до точки назначения от данной вершины
@@ -168,6 +200,13 @@ def findPath(dataInput, date, pointOrig, pointDest):
 			for elem in possibleFlights:
 				if elem.data != "end":
 					elemPaths, elemPossiblePaths = oneIter(data, elem, alreadyBeen, pointDest)
+					# отладка
+					# -------------------------------------------------------------------
+					# print("ИЗ: " + str(elem.data[17]) + " вылетают в " + str(len(elemPossiblePaths)) + " аэропортов")
+					# for each in elemPossiblePaths:
+					# 	print(each.data)
+					# input()
+					#-------------------------------------------------------------------
 					storedPaths.extend(elemPaths)
 					storedPossiblePaths.extend(elemPossiblePaths)
 				else:
@@ -179,6 +218,7 @@ def findPath(dataInput, date, pointOrig, pointDest):
 						alreadyBeen.add(str(elem.data[17]))
 				else:
 					continue
+			# возможные пути должны добавляться только после обхода всех аэропортов из PossibleFlights
 			possibleFlights = storedPossiblePaths
 			paths.extend(storedPaths)
 			
@@ -188,9 +228,10 @@ def findPath(dataInput, date, pointOrig, pointDest):
 					del data[i]
 				else:
 					i+=1
-
-			# while len(data) > 0:
-			# 	for row in possibleFlights:
+			if k == len(data):
+				isDone = True
+				break
+			k = len(data)
 			print(len(data))
 		isDone = True
 	#TODO вернуть найденные пути до точки назначения, а не просто все найденные пути, сейчас это заглушка
@@ -274,27 +315,26 @@ def main():
 	data = readFile(fileName, dateInitial, dateFinal)
 	# writeCsv(data)
 	print("считано рейсов " + str(len(data)))
-	input()
 	result = findPath(data, dateInitial, origin, dest)
 	result.sort(key = lambda elem: len(elem))
 	# т.к. мы храним найденные пути не в виде списка, а в виде дерева, нужно привести к нормальному виду
 	processedResult = list()
-	# for i in result:
-	# 	if i.parent == None:
-	# 		processedResult.append(i.data)
-	# 	else:
-	# 		while i.parent != None:
-	# 			print("Такого быть не должно.")
-	current = result[0]
+	if len(result) > 1:
+		current = result[0]
+	else:
+		current = result
+
 	while len(current) > 1:
-		processedResult.append(current.data)
+		processedResult.append(list(current.data))
 		current = current.parent
-	processedResult.append(current.data)
+	processedResult.append(list(current.data))
 	processedResult = processedResult.reverse()
 
 	timeFinish = time.time()
 	print("Время: " + str(timeFinish - timeStart))
-	processedResult.sort(key = lambda i: i[17])
+	# processedResult.sort(key = lambda i: i[17])
+
+	print(type(processedResult))
 	writeCsv(processedResult)
 
 # выполняем основную программу
